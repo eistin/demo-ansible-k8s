@@ -1,0 +1,15 @@
+---
+- name: MYSQL Setup
+  hosts: localhost
+  collections:
+    - kubernetes.core
+  tasks:
+    - name: Deploy the init script configmap from local file
+      kubernetes.core.k8s:
+        state: present
+        src: ./manifests/kubedb/mysql-init-script-config.yaml
+
+    - name: Deploy mysql from local file
+      kubernetes.core.k8s:
+        state: present
+        src: ./manifests/kubedb/mysql.yaml

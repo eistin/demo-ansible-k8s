@@ -1,0 +1,10 @@
+---
+- name: Install requirements
+  hosts: localhost
+  tasks:
+    - name: install pre-requisites
+      pip:
+        name:
+          - openshift
+          - pyyaml
+          - kubernetes 

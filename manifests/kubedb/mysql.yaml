@@ -1,0 +1,20 @@
+apiVersion: kubedb.com/v1alpha2
+kind: MySQL
+metadata:
+  name: mysql-demo
+  namespace: demo-app
+spec:
+  version: "8.0.35"
+  storageType: Durable
+  storage:
+    storageClassName: "standard"
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+  init:
+    script:
+      configMap:
+        name: mysql-init-script
+  terminationPolicy: Delete

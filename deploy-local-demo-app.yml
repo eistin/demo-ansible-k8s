@@ -1,0 +1,18 @@
+---
+- name: Demo App Setup
+  hosts: localhost
+  collections:
+    - kubernetes.core
+  tasks:
+    - name: Deploy the demo app frontend config map
+      kubernetes.core.k8s:
+        state: present
+        src: ./manifests/demo-app/demo-frontend-configmap.yaml
+    - name: Deploy the demo app backend config map
+      kubernetes.core.k8s:
+        state: present
+        src: ./manifests/demo-app/demo-backend-configmap.yaml
+    # - name: Deploy the demo app backend secret
+    #   kubernetes.core.k8s:
+    #     state: present
+    #     src: ./manifests/demo-app/demo-backend-secret.yaml

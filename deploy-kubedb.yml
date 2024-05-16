@@ -1,0 +1,21 @@
+---
+- name: KubeDB Setup
+  hosts: localhost
+  collections:
+    - kubernetes.core
+  tasks:
+    - name: Add stable chart repo
+      kubernetes.core.helm_repository:
+        name: appscode
+        repo_url: "https://charts.appscode.com/stable/"
+    - name: Deploy KubeDB chart using values files on target
+      kubernetes.core.helm:
+        name: kubedb
+        chart_ref: appscode/kubedb
+        release_namespace: kubedb
+        create_namespace: true
+        set_values:
+          - value: global.license=./files/kubedb/kubedb-license-local.txt
+            value_type: file
+        # values_files:
+        #   - ./values/kubedb/values.yaml

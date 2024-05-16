@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: demo-app
+  labels:
+    app: backend
+data:
+  MYSQL_HOST: "mysql-demo"
+  MYSQL_PORT: "3306"
+  MYSQL_USER: "user"
+  MYSQL_DBNAME: "counter_db"
