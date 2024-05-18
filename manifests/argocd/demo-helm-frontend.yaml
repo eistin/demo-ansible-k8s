@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: frontend
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: demo-app
+  source:
+    repoURL: https://github.com/eistin/demo-app
+    targetRevision: main
+    path: helm-charts/frontend
+    helm:
+      releaseName: demo-frontend
+      valueFiles:
+        - values.gcp.yaml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
