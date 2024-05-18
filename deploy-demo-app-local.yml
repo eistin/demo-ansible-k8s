@@ -1,0 +1,10 @@
+---
+- name: Demo App Setup
+  hosts: localhost
+  collections:
+    - kubernetes.core
+  tasks:
+    - name: Deploy the demo application from local file
+      kubernetes.core.k8s:
+        state: present
+        src: ./manifests/argocd/demo-application.yaml

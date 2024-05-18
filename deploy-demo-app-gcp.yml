@@ -1,0 +1,17 @@
+- name: Demo App Setup
+  hosts: localhost
+  collections:
+    - kubernetes.core
+  tasks:
+    - name: Deploy the demo app sealed secret
+      kubernetes.core.k8s:
+        state: present
+        src: ./manifests/demo-app/demo-backend-gcp-sealed-secret.yaml
+    - name: Deploy the demo app backend helm app
+      kubernetes.core.k8s:
+        state: present
+        src: ./manifests/argocd/demo-helm-backend.yaml
+    - name: Deploy the demo app frontend helm app
+      kubernetes.core.k8s:
+        state: present
+        src: ./manifests/argocd/demo-helm-frontend.yaml

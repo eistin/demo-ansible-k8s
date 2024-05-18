@@ -16,7 +16,3 @@
         create_namespace: true
         values_files:
           - ./values/argocd/values.yaml
-    - name: Deploy the demo application from local file
-      kubernetes.core.k8s:
-        state: present
-        src: ./manifests/argocd/demo-application.yaml

@@ -8,7 +8,6 @@
       kubernetes.core.k8s:
         state: present
         src: ./manifests/kubedb/mysql-init-script-config.yaml
-
     - name: Deploy mysql from local file
       kubernetes.core.k8s:
         state: present

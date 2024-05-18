@@ -17,5 +17,3 @@
         set_values:
           - value: global.license=./files/kubedb/kubedb-license-local.txt
             value_type: file
-        # values_files:
-        #   - ./values/kubedb/values.yaml
