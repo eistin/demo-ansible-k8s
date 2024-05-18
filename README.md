@@ -19,9 +19,11 @@ Install kubernetes core collection:
 ansible-galaxy collection install kubernetes.core
 ```
 
-### GKE connection
+### A Kubernete environment
 
-Go to the google cloud console and get the connection command-line which look like : 
+For [Minikube](https://minikube.sigs.k8s.io/docs/start/), make sure it runs locally and you are using the right context.
+
+For GKE, go to the google cloud console and get the connection command-line which look like : 
 ```
 gcloud container clusters get-credentials <gke_name> --zone asia-northeast2-a --project <project_name>
 ```
@@ -34,46 +36,37 @@ echo "<password>" > vault_passwd
 ```
 Then you can use the command `ansible-vault` to encrypt your data and securely appload it to github. 
 
-## Deployment
+## Create your own secret
 
-### Deploy all
+Here we have a secret containing the data MYSQL_PASSWORD for our [demo-app](https://github.com/eistin/demo-app).
 
-It's deploying:
-- argocd with the demo-app.
-- sealed-secrets (follow the guide below to use our own certificates).
-
-The command:
+The first thing to do is to define your own password and encrypt it in base64 :
 ```
-ansible-playbook all-setup.yaml
+echo -n 'pass' | base64
 ```
 
-### Deploy a specific app
+Take the output and create your secret file similar to this [one](./manifests/demo-app/demo-backend-secret.yaml).
 
-A specific app (example with ARGOCD):
+This secret will be later reused by Sealed Secrets to create a robust secret that can be pushed to GitHub without any risk of data leakage.
+
+> :warning: Never push your secrets only encoded in base64, its unsafe. I pushed the file [demo-backend-secret.yaml](./manifests/demo-app/demo-backend-secret.yaml) only to give you an example. If you want to still push it to let other access it, you can use ansible-vault as follow and share them your ansible vault key.
+
 ```
-ansible-playbook deploy-argocd.yml
-```
-
-## Argocd
-
-### Access the argocd interface
-
-Use the port forward feature :
-```
-kubectl port-forward svc/argocd-server -n argocd 9000:443
+ansible-vault encrypt ./manifests/demo-app/demo-backend-secret.yaml
 ```
 
-## Sealed Secrets
+For example, you can see the file [demo-backend-gcp-secret.yaml](./manifests/demo-app/demo-backend-gcp-secret.yaml) has been encrypted.
+
+## Sealed-secrets
+
+(for local and gke environment)
 
 > :warning: In order to deal with the problem of recurrent recreation, I use the same certificate when deploying sealed secrets. This is absolutely **not a practice to be reproduced in production**, I'm only using it for this demo. Also, the certificates and secrets **should not be pushed** to a git repository. I've pushed it into this demo to show you the files I use so that you can reuse my work and try it. 
 
-### Deploy Sealed Secrets
-
+Deploy sealed-secrets: 
 ```
 ansible-playbook deploy-sealed-secrets.yml
 ```
-
-### Use your own certificates
 
 Set some env variables:
 ```
@@ -110,36 +103,67 @@ Use your own certificate (key) by using the --cert flag:
 kubeseal --format=yaml --cert="./${PUBLICKEY}" --secret-file=./manifests/demo-app/demo-backend-secret.yaml --sealed-secret-file="./manifests/demo-app/demo-backend-sealed-secret.yaml"  --controller-namespace="sealed-secrets"
 ```
 
+## ArgoCD
 
-## KubeDB
+(for local and gke environment)
 
-I used kubedb to deploy my app in a local minikube cluster. 
+### Deploy ArgoCD
+```
+ansible-playbook deploy-argocd.yml
+```
 
-### Get your own certificate
+### Access the argocd interface
 
-You need to [generate a certificate](https://kubedb.com/docs/v2024.4.27/setup/install/kubedb/) for your cluster.
+Use the port forward feature :
+```
+kubectl port-forward svc/argocd-server -n argocd 9000:443
+```
 
-Then replace the content of the file "files/kubedb/kubedb-license-local.txt" with your own certificate. 
+## Deploy the demo-app in local Minikube
 
-### Deploy Kubedb
+### Kubedb
 
+I used kubedb to deploy a database in a local minikube cluster. 
+
+First, you need to [generate a certificate](https://kubedb.com/docs/v2024.4.27/setup/install/kubedb/) for your own cluster.
+
+Then replace the content of the file [files/kubedb/kubedb-license-local.txt](./files/kubedb/kubedb-license-local.txt) with your own certificate. 
+
+Then deploy kubedb:
 ```
 ansible-playbook deploy-kubedb.yml
 ```
 
-### Deploy MySQL
-
+When the deployement of kubedb is done and everything is up and running, you can deploy the mysql database:
 ```
 ansible-playbook deploy-mysql.yml
 ```
 
-## Demo-app
+> :warning: For local env I create the user directly in the [init script file](./manifests/kubedb/mysql-init-script-config.yaml). So if you decided to use a different password for your user, you should change it there too.
 
-The demo app is located in this repository : [demo-app](https://github.com/eistin/demo-app.git)
+### Demo-app
 
-The application is mainly deployed by argocd but the configmaps files are missing. They are not currently deployed on the argocd side because the data varies depending on the deployment environment (local or gcp) and I did a simple Application file to deploy (no helm or kustomize yet). So for the moment I'm deploying them using ansible.
+The demo app is located in this repository : [demo-app](https://github.com/eistin/demo-app.git).
 
-### Deploy the demo-app configs
+For the local environment, we just have to deploy the [argocd demo-app application](./manifests/argocd/demo-application-manifests.yaml) targeting the kubernetes manifests and containing the right values.
+
 ```
-ansible-playbook deploy-local-demo-app.yml
+ansible-playbook deploy-demo-app-local.yml
 ```
+
+## Deploy the demo-app on GKE
+
+The demo app is located in this repository : [demo-app](https://github.com/eistin/demo-app.git).
+
+For the GKE environment, we have to deploy:
+- the sealed-secrets backend-secret
+- the argocd helm application for the Backend app
+- the argocd helm application for the Frontend app
+
+```
+ansible-playbook deploy-demo-app-gcp.yml
+```
+
+Ideally, the sealed-secrets files should in a separate repository with restricted access and targeted by argocd. 
+
+The helm charts are located in the [demo-app](https://github.com/eistin/demo-app.git) as well as the values files located at the root of the charts.
