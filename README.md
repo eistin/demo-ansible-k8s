@@ -1,8 +1,55 @@
 # Demo ansible k8s
 
-## Pre-requisites
+- [Demo ansible k8s](#demo-ansible-k8s)
+- [Introduction](#introduction)
+  - [Overview](#overview)
+  - [Project Structure](#project-structure)
+- [Pre-requisites](#pre-requisites)
+  - [Requirements](#requirements)
+  - [A K8S environment](#a-k8s-environment)
+  - [Vault password](#vault-password)
+- [Create your own secret](#create-your-own-secret)
+- [Sealed-secrets](#sealed-secrets)
+- [ArgoCD](#argocd)
+  - [Deploy ArgoCD](#deploy-argocd)
+  - [Access the argocd interface](#access-the-argocd-interface)
+  - [Deploy the demo-app in local Minikube](#deploy-the-demo-app-in-local-minikube)
+  - [Kubedb](#kubedb)
+  - [Demo-app](#demo-app)
+- [Deploy the demo-app on GKE](#deploy-the-demo-app-on-gke)
 
-### Requirements 
+
+# Introduction
+
+The `demo-ansible-k8s` project is an integral part of a comprehensive set of repositories aimed at facilitating the deployment of a demo application on Google Cloud Platform (GCP). This documentation provides insights into deploying and managing the demo application stack using Ansible and Kubernetes (K8s) technologies. The project leverages Ansible playbooks, Kubernetes manifests, and Helm charts to automate infrastructure provisioning, application deployment, and configuration management.
+
+Here is the link to the [general documentation](https://github.com/eistin/demo-docs) for the demo project.
+
+## Overview 
+The primary objective of the `demo-ansible-k8s` project is to streamline the deployment process of a demo application on GCP using Ansible and Kubernetes. By automating infrastructure setup and application deployment, this project aims to provide developers and system administrators with an efficient and reproducible deployment workflow.
+
+## Project Structure
+```
+.
+├── README.md                       # Main documentation file providing an overview of the project.
+├── ansible.cfg                     # Ansible configuration file defining settings for playbook execution.
+├── deploy-argocd.yml               # Ansible playbook for deploying ArgoCD.
+├── deploy-demo-app-gcp.yml         # Ansible playbook for deploying the demo application on GCP.
+├── deploy-demo-app-local.yml       # Ansible playbook for deploying the demo application on Minikube.
+├── deploy-kubedb-mysql.yml         # Ansible playbook for deploying MySQL database using KubeDB.
+├── deploy-kubedb.yml               # Ansible playbook for deploying KubeDB.
+├── deploy-sealed-secrets.yml       # Ansible playbook for deploying Sealed Secrets.
+├── files/                          # Directory containing additional files required for deployment.
+├── install-requirements.yml        # Ansible playbook for installing project dependencies.
+├── inventory                       # File containing Ansible inventory.
+├── manifests/                      # Directory containing Kubernetes manifests for deploying resources and applications.
+├── values/                         # Directory containing values files for Helm charts.
+└── vault_passwd                    # File containing the vault password for encrypting sensitive data using Ansible Vault. (not pushed)
+```
+
+# Pre-requisites
+
+## Requirements
 
 Make sure you have installed:
 [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
@@ -19,7 +66,7 @@ Install kubernetes core collection:
 ansible-galaxy collection install kubernetes.core
 ```
 
-### A Kubernete environment
+## A K8S environment
 
 For [Minikube](https://minikube.sigs.k8s.io/docs/start/), make sure it runs locally and you are using the right context.
 
@@ -28,7 +75,7 @@ For GKE, go to the google cloud console and get the connection command-line whic
 gcloud container clusters get-credentials <gke_name> --zone asia-northeast2-a --project <project_name>
 ```
 
-### Vault password
+## Vault password
 
 Set your vault password for security:
 ```
@@ -36,7 +83,7 @@ echo "<password>" > vault_passwd
 ```
 Then you can use the command `ansible-vault` to encrypt your data and securely appload it to github. 
 
-## Create your own secret
+# Create your own secret
 
 Here we have a secret containing the data MYSQL_PASSWORD for our [demo-app](https://github.com/eistin/demo-app).
 
@@ -57,7 +104,7 @@ ansible-vault encrypt ./manifests/demo-app/demo-backend-secret.yaml
 
 For example, you can see the file [demo-backend-gcp-secret.yaml](./manifests/demo-app/demo-backend-gcp-secret.yaml) has been encrypted.
 
-## Sealed-secrets
+# Sealed-secrets
 
 (for local and gke environment)
 
@@ -103,16 +150,16 @@ Use your own certificate (key) by using the --cert flag:
 kubeseal --format=yaml --cert="./${PUBLICKEY}" --secret-file=./manifests/demo-app/demo-backend-secret.yaml --sealed-secret-file="./manifests/demo-app/demo-backend-sealed-secret.yaml"  --controller-namespace="sealed-secrets"
 ```
 
-## ArgoCD
+# ArgoCD
 
 (for local and gke environment)
 
-### Deploy ArgoCD
+## Deploy ArgoCD
 ```
 ansible-playbook deploy-argocd.yml
 ```
 
-### Access the argocd interface
+## Access the argocd interface
 
 Use the port forward feature :
 ```
@@ -121,7 +168,7 @@ kubectl port-forward svc/argocd-server -n argocd 9000:443
 
 ## Deploy the demo-app in local Minikube
 
-### Kubedb
+## Kubedb
 
 I used kubedb to deploy a database in a local minikube cluster. 
 
@@ -141,7 +188,7 @@ ansible-playbook deploy-mysql.yml
 
 > :warning: For local env I create the user directly in the [init script file](./manifests/kubedb/mysql-init-script-config.yaml). So if you decided to use a different password for your user, you should change it there too.
 
-### Demo-app
+## Demo-app
 
 The demo app is located in this repository : [demo-app](https://github.com/eistin/demo-app.git).
 
@@ -151,7 +198,7 @@ For the local environment, we just have to deploy the [argocd demo-app applicati
 ansible-playbook deploy-demo-app-local.yml
 ```
 
-## Deploy the demo-app on GKE
+# Deploy the demo-app on GKE
 
 The demo app is located in this repository : [demo-app](https://github.com/eistin/demo-app.git).
 
