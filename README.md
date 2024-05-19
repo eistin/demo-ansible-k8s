@@ -13,10 +13,10 @@
 - [ArgoCD](#argocd)
   - [Deploy ArgoCD](#deploy-argocd)
   - [Access the argocd interface](#access-the-argocd-interface)
-  - [Deploy the demo-app in local Minikube](#deploy-the-demo-app-in-local-minikube)
+- [Deploy the demo-app to Minikube](#deploy-the-demo-app-to-minikube)
   - [Kubedb](#kubedb)
   - [Demo-app](#demo-app)
-- [Deploy the demo-app on GKE](#deploy-the-demo-app-on-gke)
+- [Deploy the demo-app to GKE](#deploy-the-demo-app-to-gke)
 
 
 # Introduction
@@ -166,7 +166,7 @@ Use the port forward feature :
 kubectl port-forward svc/argocd-server -n argocd 9000:443
 ```
 
-## Deploy the demo-app in local Minikube
+# Deploy the demo-app to Minikube
 
 ## Kubedb
 
@@ -198,7 +198,7 @@ For the local environment, we just have to deploy the [argocd demo-app applicati
 ansible-playbook deploy-demo-app-local.yml
 ```
 
-# Deploy the demo-app on GKE
+# Deploy the demo-app to GKE
 
 The demo app is located in this repository : [demo-app](https://github.com/eistin/demo-app.git).
 
